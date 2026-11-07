@@ -461,7 +461,10 @@ describe("Tensor operations", () => {
       expect(Array.from(tensor.remainder_(0).data)).toEqual([NaN, NaN, NaN]);
     });
     it.each(["float32", "float64"])("should preserve small %s remainders with large same-sign divisors", (type) => {
-      for (const [divisor, values] of [[1e20, [1, 3]], [-1e20, [-1, -3]]]) {
+      for (const [divisor, values] of [
+        [1e20, [1, 3]],
+        [-1e20, [-1, -3]],
+      ]) {
         const tensor = new Tensor(type, values, [2]);
         expect(Array.from(tensor.remainder(divisor).data)).toEqual(values);
         expect(Array.from(tensor.data)).toEqual(values);
@@ -539,6 +542,24 @@ describe("Tensor operations", () => {
       const result = t1.squeeze([0, 3]);
       const target = new Tensor("float32", [1, 2, 3, 4], [1, 2, 2]);
       expect(result).toEqual(target);
+    });
+    it("should remove a specified negative dimension", () => {
+      const t1 = new Tensor("float32", [1, 2, 3], [1, 3, 1]);
+      const result = t1.squeeze(-1);
+      const target = new Tensor("float32", [1, 2, 3], [1, 3]);
+      expect(result).toEqual(target);
+    });
+    it("should remove multiple negative dimensions", () => {
+      const t1 = new Tensor("float32", [1, 2, 3], [1, 3, 1]);
+      const result = t1.squeeze([0, -1]);
+      const target = new Tensor("float32", [1, 2, 3], [3]);
+      expect(result).toEqual(target);
+    });
+    it("should throw on out-of-range dimensions", () => {
+      const t1 = new Tensor("float32", [1, 2, 3], [1, 3, 1]);
+      expect(() => t1.squeeze(3)).toThrow();
+      expect(() => t1.squeeze(-4)).toThrow();
+      expect(() => t1.squeeze([0, 3])).toThrow();
     });
   });
 
